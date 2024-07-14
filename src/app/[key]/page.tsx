@@ -1,6 +1,6 @@
-import styles from './page.module.scss';
-import { getCurrentWordByKey, getHistoricWordByKey } from './actions';
 import { getKey } from '@/utils/keyHelper';
+import { getCurrentWordByKey, getHistoricWordByKey } from './actions';
+import styles from './page.module.scss';
 
 export default async function Page({ params }: Readonly<{ params: { key: string } }>) {
     const key = getKey(params.key);

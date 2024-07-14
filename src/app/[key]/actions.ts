@@ -1,12 +1,13 @@
 'use server'
 
 import Key from "@/models/key";
-import wordsFrBasic from "./words-fr-basic.json"
-import wordsFrOss from "./words-fr-oss.json"
-import { format, subDays, previousMonday, previousSunday, nextSunday, nextSaturday, isSunday, isSaturday, isMonday } from "date-fns";
-import { notFound } from "next/navigation";
-import WordWithPeriod from "@/models/wordWithPeriod";
 import Period from "@/models/period";
+import WordWithPeriod from "@/models/wordWithPeriod";
+import { format, isMonday, isSaturday, isSunday, nextSaturday, nextSunday, previousMonday, previousSunday, subDays } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import { notFound } from "next/navigation";
+import wordsFrBasic from "./words-fr-basic.json";
+import wordsFrOss from "./words-fr-oss.json";
 
 const periodDaysIntervals: Record<string, number> = {
     'd': 1,
@@ -15,14 +16,18 @@ const periodDaysIntervals: Record<string, number> = {
 };
 
 export async function getCurrentWordByKey(key: Key) {
-    return await getWordByKeyAndDate(key, new Date(Date.now()));
+    return await getWordByKeyAndDate(key, getCurrentDate());
 }
 
 export async function getHistoricWordByKey(key: Key) {
     const numberOfWords = key.periodicity === 'd' ? 6 : 3;
-    const promises = Array.from(getPastPeriods(key, new Date(Date.now()), numberOfWords))
+    const promises = Array.from(getPastPeriods(key, getCurrentDate(), numberOfWords))
         .map((pastPeriod) => getWordByKeyAndDate(key, pastPeriod));
     return await Promise.all(promises);
+}
+
+function getCurrentDate() {
+    return toZonedTime(new Date(), 'Europe/Paris');
 }
 
 async function getWordByKeyAndDate(key: Key, date: Date): Promise<WordWithPeriod> {

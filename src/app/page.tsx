@@ -1,9 +1,9 @@
 'use client'
 
-import { nanoid } from 'nanoid'
-import { useRouter } from 'next/navigation'
-import styles from './page.module.scss';
+import { nanoid } from 'nanoid';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import styles from './page.module.scss';
 
 export default function Home() {
     const [periodicity, setPeriodicity] = useState('d');
