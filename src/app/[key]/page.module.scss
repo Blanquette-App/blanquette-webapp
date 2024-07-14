@@ -1,0 +1,27 @@
+.current-word {
+    font-size: 2em;
+    font-weight: bold;
+    padding: 3rem 0;
+}
+
+.word-history {
+    .title {
+        font-size: 1.1em;
+        text-decoration: underline;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    .grid {
+        display: grid;
+        grid-template-columns: [date] max-content [word] 1fr;
+        gap: 3px 15px;
+
+        & > .row {
+            grid-column: span 2;
+
+            display: grid;
+            grid-template-columns: subgrid;
+        }
+    }
+}
