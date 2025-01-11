@@ -2,7 +2,8 @@ import { getKey } from '@/utils/keyHelper';
 import { getCurrentWordByKey, getHistoricWordByKey } from './actions';
 import styles from './page.module.scss';
 
-export default async function Page({ params }: Readonly<{ params: { key: string } }>) {
+export default async function Page(props: Readonly<{ params: Promise<{ key: string }> }>) {
+    const params = await props.params;
     const key = getKey(params.key);
     const currentWord = await getCurrentWordByKey(key);
     const oldWords = await getHistoricWordByKey(key);
