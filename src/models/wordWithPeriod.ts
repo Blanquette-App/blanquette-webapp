@@ -1,6 +1,6 @@
-import Period from "./period";
+import type Period from "./period";
 
 export default interface WordWithPeriod {
-    word: string;
-    period: Period;
+	word: string;
+	period: Period;
 }
