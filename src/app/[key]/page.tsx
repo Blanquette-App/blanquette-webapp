@@ -20,12 +20,12 @@ export default async function Page(
 			<div className={styles["current-word"]}>{currentWord.word}</div>
 
 			<div className={styles["word-history"]}>
-				<div className={styles["title"]}>Historique :</div>
-				<div className={styles["grid"]}>
+				<div className={styles.title}>Historique :</div>
+				<div className={styles.grid}>
 					{oldWords.map((word) => {
 						const date = dateFormater.format(word.period.start);
 						return (
-							<div key={date} className={styles["row"]}>
+							<div key={date} className={styles.row}>
 								<div>- {date} :</div>
 								<div>{word.word}</div>
 							</div>
