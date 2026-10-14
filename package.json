@@ -9,7 +9,7 @@
 		"start": "next start",
 		"lint": "biome lint",
 		"update": "pnpm next upgrade && pnpm up -i && pnpm install",
-		"typecheck": "tsc --noEmit",
+		"typecheck": "next typegen && tsc --noEmit",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:e2e": "playwright test"

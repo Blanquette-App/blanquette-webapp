@@ -1,0 +1,31 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended", ":maintainLockFilesWeekly"],
+	"timezone": "Europe/Paris",
+	"minimumReleaseAge": "1 day",
+	"internalChecksFilter": "strict",
+	"automerge": true,
+	"automergeType": "pr",
+	"platformAutomerge": true,
+	"rebaseWhen": "behind-base-branch",
+	"labels": ["dependencies"],
+	"packageRules": [
+		{
+			"description": "Update Playwright npm package and its CI image together",
+			"groupName": "playwright",
+			"matchPackageNames": ["@playwright/test", "mcr.microsoft.com/playwright"]
+		}
+	],
+	"customManagers": [
+		{
+			"description": "Keep biome.json schema version in sync with @biomejs/biome",
+			"customType": "regex",
+			"managerFilePatterns": ["/^biome\\.json$/"],
+			"matchStrings": [
+				"\"\\$schema\":\\s*\"https://biomejs\\.dev/schemas/(?<currentValue>[^/]+)/schema\\.json\""
+			],
+			"depNameTemplate": "@biomejs/biome",
+			"datasourceTemplate": "npm"
+		}
+	]
+}

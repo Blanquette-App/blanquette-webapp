@@ -4,10 +4,21 @@ variables:
   DOCKER_HUB_USERNAME: $DOCKER_HUB_USERNAME
   DOCKER_HUB_PASSWORD: $DOCKER_HUB_PASSWORD
   IMAGE_NAME: $DOCKER_HUB_USERNAME/blanquette
+  NEXT_TELEMETRY_DISABLED: "1"
+
+workflow:
+  rules:
+    # Scheduled pipelines only run Renovate (see the `renovate` job)
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      variables:
+        SAST_DISABLED: "true"
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH
 
 stages:
   - test
   - build
+  - renovate
 
 include:
   - template: Security/SAST.gitlab-ci.yml
@@ -15,16 +26,113 @@ include:
 sast:
   stage: test
 
-build:
+.not-scheduled:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - when: on_success
+
+.pnpm:
+  extends: .not-scheduled
+  image: node:24-alpine
+  cache:
+    key:
+      files:
+        - pnpm-lock.yaml
+    paths:
+      - .pnpm-store
+  before_script:
+    - corepack enable
+    - pnpm config set store-dir .pnpm-store
+    - pnpm install --frozen-lockfile
+
+lint:
+  extends: .pnpm
+  stage: test
+  script:
+    - pnpm exec biome ci .
+    - pnpm typecheck
+
+unit-tests:
+  extends: .pnpm
+  stage: test
+  script:
+    - pnpm test --reporter=default --reporter=junit --outputFile.junit=unit-results.xml
+  artifacts:
+    when: always
+    reports:
+      junit: unit-results.xml
+
+e2e-tests:
+  extends: .pnpm
+  stage: test
+  # Keep in sync with @playwright/test (Renovate updates both together)
+  image: mcr.microsoft.com/playwright:v1.64.1-noble
+  script:
+    - pnpm exec playwright install chromium # no-op when the image already matches
+    - pnpm build
+    - pnpm test:e2e
+  artifacts:
+    when: always
+    paths:
+      - playwright-report/
+      - test-results/
+    reports:
+      junit: e2e-results.xml
+    expire_in: 1 week
+
+.docker:
   stage: build
   image: docker:latest
   services:
     - docker:dind
   before_script:
     - docker info
+
+build:
+  extends: .docker
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+      when: never
+    - if: $CI_COMMIT_BRANCH =~ /^renovate\//
+      when: never
+    - when: on_success
   script:
     - docker build -t $IMAGE_NAME:$CI_COMMIT_SHA .
     - if [ "$CI_COMMIT_BRANCH" == "main" ]; then docker tag $IMAGE_NAME:$CI_COMMIT_SHA $IMAGE_NAME:latest; fi
     - echo "$DOCKER_HUB_PASSWORD" | docker login -u "$DOCKER_HUB_USERNAME" --password-stdin
     - docker push $IMAGE_NAME:$CI_COMMIT_SHA
     - if [ "$CI_COMMIT_BRANCH" == "main" ]; then docker push $IMAGE_NAME:latest; fi
+
+# Renovate branches: check the image still builds, without publishing it
+build-check:
+  extends: .docker
+  rules:
+    - if: $CI_PIPELINE_SOURCE != "schedule" && $CI_COMMIT_BRANCH =~ /^renovate\//
+  script:
+    - docker build -t $IMAGE_NAME:$CI_COMMIT_SHA .
+
+# Run from a pipeline schedule (CI/CD > Schedules), e.g. every night.
+# Requires a masked RENOVATE_TOKEN CI/CD variable: a project access token
+# with the `api` and `write_repository` scopes (Developer role or more).
+# Optionally add GITHUB_COM_TOKEN (read-only GitHub PAT) to fetch changelogs.
+renovate:
+  stage: renovate
+  image: renovate/renovate:44.160.0
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "schedule"
+  variables:
+    RENOVATE_PLATFORM: gitlab
+    RENOVATE_ENDPOINT: $CI_API_V4_URL
+    RENOVATE_REPOSITORIES: $CI_PROJECT_PATH
+    RENOVATE_BASE_DIR: $CI_PROJECT_DIR/renovate
+    RENOVATE_ONBOARDING: "false"
+    RENOVATE_REQUIRE_CONFIG: required
+    RENOVATE_REPOSITORY_CACHE: enabled
+    LOG_LEVEL: info
+  cache:
+    key: renovate
+    paths:
+      - renovate/cache/renovate/repository/
+  script:
+    - renovate
