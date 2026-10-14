@@ -17,7 +17,9 @@ export default async function Page(
 
 	return (
 		<>
-			<div className={styles["current-word"]}>{currentWord.word}</div>
+			<div className={styles["current-word"]} data-testid="current-word">
+				{currentWord.word}
+			</div>
 
 			<div className={styles["word-history"]}>
 				<div className={styles.title}>Historique :</div>
@@ -25,7 +27,7 @@ export default async function Page(
 					{oldWords.map((word) => {
 						const date = dateFormater.format(word.period.start);
 						return (
-							<div key={date} className={styles.row}>
+							<div key={date} className={styles.row} data-testid="history-row">
 								<div>- {date} :</div>
 								<div>{word.word}</div>
 							</div>
