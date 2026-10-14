@@ -67,7 +67,7 @@ e2e-tests:
   extends: .pnpm
   stage: test
   # Keep in sync with @playwright/test (Renovate updates both together)
-  image: mcr.microsoft.com/playwright:v1.64.1-noble
+  image: mcr.microsoft.com/playwright:v1.64.0-noble
   script:
     - pnpm exec playwright install chromium # no-op when the image already matches
     - pnpm build

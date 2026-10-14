@@ -14,6 +14,11 @@
 			"description": "Update Playwright npm package and its CI image together",
 			"groupName": "playwright",
 			"matchPackageNames": ["@playwright/test", "mcr.microsoft.com/playwright"]
+		},
+		{
+			"description": "Keep @types/node on the Node.js major used at runtime (Dockerfile, CI); bump together with the node image",
+			"matchPackageNames": ["@types/node"],
+			"allowedVersions": "<25"
 		}
 	],
 	"customManagers": [
