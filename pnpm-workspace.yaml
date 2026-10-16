@@ -1,0 +1,13 @@
+# pnpm settings (pnpm >= 11 no longer reads the `pnpm` field of package.json
+# nor non-auth settings from .npmrc)
+
+# Ignore versions published less than 1 day ago (in minutes), same as Renovate
+minimumReleaseAge: 1440
+
+overrides:
+  '@types/react': 19.3.0
+  '@types/react-dom': 19.3.0
+
+allowBuilds:
+  '@parcel/watcher': true
+  sharp: true
